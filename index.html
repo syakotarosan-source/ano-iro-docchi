@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ギャングカラー検索＆作業カウンター</title>
+  <meta name="description" content="ギャングカラー検索と修理・色替え作業カウンターをまとめたアプリ" />
+  <style>
+    :root {
+      --bg: #f3f4f6;
+      --card: #ffffff;
+      --text: #111827;
+      --sub: #6b7280;
+      --line: #dbe1ea;
+      --accent: #1d4ed8;
+      --accent-soft: #dbeafe;
+      --green: #065f46;
+      --green-soft: #d1fae5;
+      --red: #991b1b;
+      --red-soft: #fee2e2;
+      --shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+      --radius: 20px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .wrap {
+      width: min(1440px, calc(100vw - 24px));
+      margin: 16px auto 40px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #0f172a, #1d4ed8 55%, #0f766e);
+      color: #fff;
+      border-radius: 26px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+      margin-bottom: 16px;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: clamp(24px, 3.2vw, 38px);
+      line-height: 1.2;
+    }
+
+    .hero p {
+      margin: 0;
+      line-height: 1.75;
+      opacity: 0.95;
+      font-size: 15px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(219, 225, 234, 0.95);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 24px;
+    }
+
+    .muted {
+      color: var(--sub);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .search-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 15px 16px;
+      font-size: 18px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      outline: none;
+      background: #fff;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(29, 78, 216, 0.12);
+    }
+
+    button {
+      border: none;
+      border-radius: 14px;
+      padding: 13px 16px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.08s ease, opacity 0.18s ease;
+    }
+
+    button:hover { opacity: 0.95; }
+    button:active { transform: scale(0.98); }
+
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-soft { background: var(--accent-soft); color: #1e3a8a; }
+    .btn-green { background: var(--green-soft); color: var(--green); }
+    .btn-red { background: var(--red-soft); color: var(--red); }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .result-box {
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      min-height: 180px;
+      background: #fbfdff;
+    }
+
+    .result-item + .result-item {
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px dashed #d3deed;
+    }
+
+    .gang-name {
+      margin: 0 0 12px;
+      font-size: 24px;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .color-box {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      background: #fff;
+    }
+
+    .color-box .label {
+      display: block;
+      font-size: 13px;
+      color: var(--sub);
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+
+    .badge-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .badge {
+      background: #eff6ff;
+      color: #1d4ed8;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .work-section + .work-section { margin-top: 18px; }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .count-buttons {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .big-btn {
+      min-height: 66px;
+      font-size: 22px;
+      background: #f8fafc;
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+
+    .big-btn:hover {
+      background: #eef6ff;
+      border-color: #bfd4ff;
+    }
+
+    .summary-grid, .stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .stats.stats-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .panel {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+    }
+
+    .panel h3 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 7px 0;
+      border-bottom: 1px dashed #e5e7eb;
+      font-size: 15px;
+    }
+
+    .row:last-child { border-bottom: none; }
+
+    .stat {
+      text-align: center;
+      background: linear-gradient(180deg, #ffffff, #f8fafc);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+    }
+
+    .stat .label {
+      font-size: 13px;
+      color: var(--sub);
+      margin-bottom: 8px;
+    }
+
+    .stat .value {
+      font-size: 30px;
+      font-weight: 800;
+    }
+
+    .history {
+      margin-top: 12px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+      background: #fff;
+      max-height: 290px;
+      overflow: auto;
+    }
+
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px dashed #e5e7eb;
+      font-size: 14px;
+    }
+
+    .history-item:last-child { border-bottom: none; }
+
+    .notice {
+      display: none;
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      border: 1px solid #a7f3d0;
+      color: var(--green);
+      background: #ecfdf5;
+    }
+
+    details {
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px 12px;
+      background: #fff;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    ul { padding-left: 20px; }
+
+    code.inline {
+      display: inline-block;
+      background: #f3f4f6;
+      padding: 2px 6px;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      .stats.stats-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 680px) {
+      .wrap { width: min(100vw - 16px, 100%); margin: 8px auto 24px; }
+      .hero { padding: 18px; border-radius: 18px; }
+      .card { padding: 14px; }
+      .search-row { grid-template-columns: 1fr; }
+      .color-grid, .summary-grid, .stats, .stats.stats-3 { grid-template-columns: 1fr; }
+      .count-buttons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .big-btn { min-height: 58px; font-size: 20px; }
+      input[type="text"] { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>ギャングカラー検索＆作業カウンター</h1>
+      <p>
+        ギャング名や色名でカラー情報を検索できます。<br>
+        あわせて、修理と色替えの作業台数も同じ画面で記録できます。修理は 1〜8か所、色替えは 1〜4か所を 1台ごとに登録する方式です。
+      </p>
+    </section>
+
+    <div class="layout">
+      <section class="card">
+        <h2>ギャングカラー検索</h2>
+        <div class="muted">
+          ギャング名、色名、別名、略称で検索できます。下のデータはあとから自由に追加できます。
+        </div>
+
+        <div class="search-row">
+          <input id="searchInput" type="text" placeholder="例：Fisher / 青 / オレンジ / 半グレ / パープル" />
+          <button class="btn-primary" onclick="searchGang()">検索</button>
+        </div>
+
+        <div class="toolbar">
+          <button class="btn-soft" onclick="fillExample('Fisher')">Fisher</button>
+          <button class="btn-soft" onclick="fillExample('青')">青</button>
+          <button class="btn-soft" onclick="fillExample('オレンジ')">オレンジ</button>
+          <button class="btn-soft" onclick="fillExample('半グレ')">半グレ</button>
+        </div>
+
+        <div id="resultBox" class="result-box">
+          <div class="muted">ここに検索結果が表示されます。</div>
+        </div>
+
+        <details>
+          <summary>ギャングデータの追加方法</summary>
+          <ul>
+            <li><span class="inline">gangData</span> に新しいデータを追加してください。</li>
+            <li><span class="inline">keywords</span> に別名や略称を入れると検索しやすくなります。</li>
+            <li>プライマリー、セカンダリー、パール、ホイールの文字は自由に変更できます。</li>
+          </ul>
+        </details>
+      </section>
+
+      <section class="card">
+        <h2>作業カウンター</h2>
+
+        <div class="work-section">
+          <div class="section-head">
+            <strong>修理台数を記録</strong>
+            <span class="muted">1台ごとの修理か所数</span>
+          </div>
+          <div class="count-buttons" id="repairButtons"></div>
+        </div>
+
+        <div class="work-section">
+          <div class="section-head">
+            <strong>色替え台数を記録</strong>
+            <span class="muted">1台ごとの色替えか所数</span>
+          </div>
+          <div class="count-buttons" id="paintButtons"></div>
+        </div>
+
+        <div class="summary-grid">
+          <div class="panel">
+            <h3>修理 内訳</h3>
+            <div id="repairSummary"></div>
+          </div>
+          <div class="panel">
+            <h3>色替え 内訳</h3>
+            <div id="paintSummary"></div>
+          </div>
+        </div>
+
+        <div class="stats stats-3">
+          <div class="stat">
+            <div class="label">修理台数 合計</div>
+            <div class="value" id="repairCars">0</div>
+          </div>
+          <div class="stat">
+            <div class="label">色替え台数 合計</div>
+            <div class="value" id="paintCars">0</div>
+          </div>
+          <div class="stat">
+            <div class="label">総作業台数 合計</div>
+            <div class="value" id="totalCars">0</div>
+          </div>
+        </div>
+
+        <div class="stats stats-3">
+          <div class="stat">
+            <div class="label">修理か所数 合計</div>
+            <div class="value" id="repairPoints">0</div>
+          </div>
+          <div class="stat">
+            <div class="label">色替えか所数 合計</div>
+            <div class="value" id="paintPoints">0</div>
+          </div>
+          <div class="stat">
+            <div class="label">総か所数 合計</div>
+            <div class="value" id="totalPoints">0</div>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-top:16px;">
+          <h3>履歴</h3>
+          <div class="muted">直近の入力が上に表示されます。間違えた場合は「ひとつ戻す」を押してください。</div>
+          <div id="history" class="history"></div>
+          <div class="toolbar">
+            <button class="btn-green" onclick="undoLast()">ひとつ戻す</button>
+            <button class="btn-red" onclick="resetWorkCounts()">作業カウンターをリセット</button>
+          </div>
+          <div id="notice" class="notice"></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'gangColorAndWorkCounter_v2';
+
+    const gangData = [
+      {
+        name: 'lvy半グレ / まっくろくろす',
+        primary: 'アノダイズドパープル（カメレオン）',
+        secondary: '未設定',
+        pearl: '未設定',
+        wheel: '未設定',
+        keywords: ['lvy', '半グレ', '半ぐれ', 'まっくろくろす', '紫', 'パープル', 'purple', 'アノダイズドパープル']
+      },
+      {
+        name: 'Fisher（青ギャング）',
+        primary: 'アノダイズドブルー（カメレオン）',
+        secondary: '未設定',
+        pearl: '未設定',
+        wheel: '未設定',
+        keywords: ['fisher', 'フィッシャー', '青', 'ブルー', 'blue', '青ギャング', 'アノダイズドブルー']
+      },
+      {
+        name: 'オレンジギャング',
+        primary: 'オレンジ（マット）',
+        secondary: '未設定',
+        pearl: '未設定',
+        wheel: '未設定',
+        keywords: ['オレンジ', 'orange', '橙', 'オレンジギャング', 'マットオレンジ']
+      }
+    ];
+
+    const defaultWorkState = () => ({
+      repair: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0 },
+      paint: { 1: 0, 2: 0, 3: 0, 4: 0 },
+      history: []
+    });
+
+    let workState = defaultWorkState();
+
+    function normalizeText(text) {
+      return String(text || '')
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '')
+        .replace(/[（）()]/g, '');
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function fillExample(word) {
+      document.getElementById('searchInput').value = word;
+      searchGang();
+    }
+
+    function searchGang() {
+      const raw = document.getElementById('searchInput').value;
+      const q = normalizeText(raw);
+      const box = document.getElementById('resultBox');
+
+      if (!q) {
+        box.innerHTML = '<div class="muted">検索ワードを入力してください。</div>';
+        return;
+      }
+
+      const hits = gangData.filter((item) => {
+        const targets = [
+          item.name,
+          item.primary,
+          item.secondary,
+          item.pearl,
+          item.wheel,
+          ...(item.keywords || [])
+        ].map(normalizeText);
+
+        return targets.some(word => word.includes(q) || q.includes(word));
+      });
+
+      if (hits.length === 0) {
+        box.innerHTML = `<div class="muted">「${escapeHtml(raw)}」に一致するデータは見つかりませんでした。</div>`;
+        return;
+      }
+
+      box.innerHTML = hits.map(item => `
+        <div class="result-item">
+          <div class="gang-name">${escapeHtml(item.name)}</div>
+          <div class="color-grid">
+            <div class="color-box"><span class="label">プライマリー</span>${escapeHtml(item.primary)}</div>
+            <div class="color-box"><span class="label">セカンダリー</span>${escapeHtml(item.secondary)}</div>
+            <div class="color-box"><span class="label">パール</span>${escapeHtml(item.pearl)}</div>
+            <div class="color-box"><span class="label">ホイール</span>${escapeHtml(item.wheel)}</div>
+          </div>
+          <div class="badge-list">
+            ${(item.keywords || []).map(k => `<span class="badge">${escapeHtml(k)}</span>`).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderButtons() {
+      const repairButtons = document.getElementById('repairButtons');
+      const paintButtons = document.getElementById('paintButtons');
+
+      repairButtons.innerHTML = Array.from({ length: 8 }, (_, i) => i + 1)
+        .map(num => `<button class="big-btn" onclick="addWork('repair', ${num})">${num}</button>`)
+        .join('');
+
+      paintButtons.innerHTML = Array.from({ length: 4 }, (_, i) => i + 1)
+        .map(num => `<button class="big-btn" onclick="addWork('paint', ${num})">${num}</button>`)
+        .join('');
+    }
+
+    function addWork(type, points) {
+      workState[type][points] += 1;
+      workState.history.unshift({
+        type,
+        points,
+        time: new Date().toLocaleString('ja-JP')
+      });
+      saveState();
+      renderWork();
+      showNotice(`${type === 'repair' ? '修理' : '色替え'} ${points}か所の車両を1台追加しました。`);
+    }
+
+    function undoLast() {
+      const last = workState.history[0];
+      if (!last) {
+        showNotice('戻せる履歴がありません。', true);
+        return;
+      }
+
+      if (workState[last.type][last.points] > 0) {
+        workState[last.type][last.points] -= 1;
+      }
+      workState.history.shift();
+      saveState();
+      renderWork();
+      showNotice('直前の入力を取り消しました。');
+    }
+
+    function resetWorkCounts() {
+      const ok = confirm('作業カウンターをリセットします。よろしいですか？');
+      if (!ok) return;
+      workState = defaultWorkState();
+      saveState();
+      renderWork();
+      showNotice('作業カウンターをリセットしました。');
+    }
+
+    function renderSummary(targetId, data) {
+      const el = document.getElementById(targetId);
+      el.innerHTML = Object.keys(data).map(key => `
+        <div class="row">
+          <span>${key}か所</span>
+          <strong>${data[key]}台</strong>
+        </div>
+      `).join('');
+    }
+
+    function sumValues(obj) {
+      return Object.values(obj).reduce((sum, val) => sum + val, 0);
+    }
+
+    function sumWeighted(obj) {
+      return Object.entries(obj).reduce((sum, [points, count]) => sum + Number(points) * count, 0);
+    }
+
+    function renderWork() {
+      renderSummary('repairSummary', workState.repair);
+      renderSummary('paintSummary', workState.paint);
+
+      const repairCars = sumValues(workState.repair);
+      const paintCars = sumValues(workState.paint);
+      const repairPoints = sumWeighted(workState.repair);
+      const paintPoints = sumWeighted(workState.paint);
+
+      document.getElementById('repairCars').textContent = repairCars;
+      document.getElementById('paintCars').textContent = paintCars;
+      document.getElementById('totalCars').textContent = repairCars + paintCars;
+      document.getElementById('repairPoints').textContent = repairPoints;
+      document.getElementById('paintPoints').textContent = paintPoints;
+      document.getElementById('totalPoints').textContent = repairPoints + paintPoints;
+
+      const historyEl = document.getElementById('history');
+      if (workState.history.length === 0) {
+        historyEl.innerHTML = '<div class="muted">まだ記録はありません。</div>';
+      } else {
+        historyEl.innerHTML = workState.history.map(item => `
+          <div class="history-item">
+            <div>${item.type === 'repair' ? '修理' : '色替え'} ${item.points}か所</div>
+            <div class="muted">${escapeHtml(item.time)}</div>
+          </div>
+        `).join('');
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(workState));
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.repair && parsed.paint && Array.isArray(parsed.history)) {
+          workState = parsed;
+        }
+      } catch (err) {
+        console.error('保存データの読み込みに失敗しました。', err);
+      }
+    }
+
+    function showNotice(message, isError = false) {
+      const notice = document.getElementById('notice');
+      notice.textContent = message;
+      notice.style.display = 'block';
+      if (isError) {
+        notice.style.background = '#fef2f2';
+        notice.style.color = '#991b1b';
+        notice.style.borderColor = '#fecaca';
+      } else {
+        notice.style.background = '#ecfdf5';
+        notice.style.color = '#065f46';
+        notice.style.borderColor = '#a7f3d0';
+      }
+      clearTimeout(showNotice.timer);
+      showNotice.timer = setTimeout(() => {
+        notice.style.display = 'none';
+      }, 2200);
+    }
+
+    loadState();
+    renderButtons();
+    renderWork();
+  </script>
+</body>
+</html>
